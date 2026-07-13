@@ -62,7 +62,8 @@ messages = [message_system, message]
 response = client.chat.completions.create(
     model=model,
     messages=messages,
-    temperature=1
+    temperature=1,
+    max_tokens=400
 )
 
 
@@ -79,14 +80,14 @@ print("*********")
 
 
 # Prints the user's question and the number of prompt tokens used
-print(f"User Query: {prompt} Token Consumption: {usage.prompt_tokens}")
+print(f"User Query: {prompt} Token Consumption: {usage.prompt_tokens} Finish Reason {response.choices[0].finish_reason}")
 
 
 # Prints the AI's answer and the number of completion tokens used
-print(f"AI Answer: {answer} Token Consumption: {usage.completion_tokens}")
+print(f"AI Answer: {answer} Token Consumption: {usage.completion_tokens} Finish Reason {response.choices[0].finish_reason}")
 
 
 # Prints the total number of tokens used (prompt + completion)
-print(f"Total Token Consumption: {usage.total_tokens}")
+print(f"Total Token Consumption: {usage.total_tokens} Finish Reason {response.choices[0].finish_reason}")
 
 
