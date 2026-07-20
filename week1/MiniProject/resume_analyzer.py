@@ -167,6 +167,76 @@ system_message_resume={
     "role":"system",
     "content":system_prompt_resume
 }
+class MatchingResult(BaseModel):
+    resume_name:str
+    match_score:float
+    matched_skills:list[str]
+    missing_skills:list[str]
+    experience_match: bool
+    verdict: str
+
+
+MatchingResult_schema=MatchingResult.model_json_schema()
+
+def compare_resume(jd,resume):
+
+    resComp_system_prompt=f"""
+    You are an expert HR recruiter.
+
+    Compare the candidate's resume with the job description.
+
+    Return ONLY valid JSON matching this schema:
+
+    {MatchingResult_schema}
+
+    Rules:
+    1. Calculate a match score between 0 and 100.
+    2. List the matching skills.
+    3. List the missing required skills.
+    4. Check whether the candidate satisfies the minimum experience requirement.
+    5. Give a short verdict such as:
+       - Excellent Fit
+       - Good Fit
+       - Average Fit
+       - Poor Fit
+    Do not invent information.
+    """
+
+    resComp_message_system={
+        "role":"system",
+        "content":resComp_system_prompt
+    }
+
+    user_prompt_resume_comp=f"""
+    JOB DESCRIPTION
+
+    {jd.model_dump_json(indent=2)}
+
+    CANDIDATE RESUME
+
+    {resume.model_dump_json(indent=2)}
+    """
+
+    resComp_message_user={
+        "role":"user",
+        "content":user_prompt_resume_comp
+    }
+
+    resComp_messages=[resComp_message_system,resComp_message_user]
+
+    response_resume_comp=client.chat.completions.create(
+        model=model,
+        messages=resComp_messages,
+        temperature=0,
+        response_format=response_format
+    )
+
+    ans_res_comp=response_resume_comp.choices[0].message.content
+    data_file_res_comp=json.loads(ans_res_comp)
+    matching_result=MatchingResult(**data_file_res_comp)
+
+    return matching_result
+
 #Resume Handling
 #For PDF type of files
 def read_pdf(file_path):
@@ -248,5 +318,20 @@ for file_path in resume_folder.iterdir():
     resume_op = Resume(**data_file_res)
 
     # Print result
-    print(resume_op)
+    #print(resume_op)
+    #print("-" * 80)
+    #time.sleep(2)
+
+
+    score=compare_resume(jd,resume_op)
+    print(f"Analysis of {file_path.name}")
+    print(f"Resume: {score.resume_name}")
+    print(f"Score: {score.match_score}")
+    print(f"Verdict: {score.verdict}")
+    print(f"Matched Skills: {score.matched_skills}")
+    print(f"Missing Skills: {score.missing_skills}")
     print("-" * 80)
+
+
+
+    

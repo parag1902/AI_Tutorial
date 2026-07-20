@@ -1,0 +1,50 @@
+                              START
+                                │
+                                ▼
+                 Load Environment & Initialize Groq
+                                │
+                                ▼
+            Define Pydantic Models (JobDesc, Resume,
+                    MatchingResult) & JSON Schemas
+                                │
+                                ▼
+                  Parse Job Description using LLM
+                                │
+                                ▼
+                     JobDesc Pydantic Object
+                                │
+                                ▼
+                  Read Resume Files (PDF/DOCX)
+                                │
+                                ▼
+                     Extract Resume Text
+                                │
+                                ▼
+                    Parse Resume using LLM
+                                │
+                                ▼
+                     Resume Pydantic Object
+                                │
+                                ▼
+          Compare Resume with Job Description (LLM)
+                                │
+                                ▼
+                  MatchingResult Pydantic Object
+                                │
+                                ▼
+                    Generate Analysis Report
+         ┌─────────────────────────────────────────┐
+         │ • Resume Name                           │
+         │ • Match Score                           │
+         │ • Verdict                               │
+         │ • Matched Skills                        │
+         │ • Missing Skills                        │
+         └─────────────────────────────────────────┘
+                                │
+                                ▼
+                  More Resume Files Available?
+                      │                    │
+                    Yes                    No
+                      │                    │
+                      ▼                    ▼
+              Process Next Resume         END
