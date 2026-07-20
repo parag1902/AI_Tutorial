@@ -4,7 +4,9 @@ from pathlib import Path
 from dotenv import load_dotenv
 from groq import Groq
 from pydantic import BaseModel
-
+from pypdf import PdfReader
+from docx import Document
+import time
 
 load_dotenv()
 my_api_key=os.getenv("GROQ_API_KEY")
@@ -113,4 +115,138 @@ data_file=json.loads(raw_json)
 jd=JobDesc(**data_file)
 
 
+    
+#Step 2:Parsing the Resume
 
+class Resume(BaseModel):
+    name:str | None
+    email:str | None
+    phone:str | None
+    total_exp:float | None
+    skills:list[str]
+    experiences:list[str]
+    education:list[str]
+    projects:list[str]
+    certification:list[str]
+
+Resume_schema=Resume.model_json_schema()
+
+system_prompt_resume=f"""
+    You are an expert resume parser.
+
+    Extract information from the resume based on its meaning,
+    not only based on exact section headings.
+
+    Different resumes may use different headings.
+
+    For example:
+    - Experience
+    - Professional Experience
+    - Work History
+    - Employment
+    - Internships
+
+    These may all contain relevant experience.
+
+    Skills may also appear in the skills section, work experience,
+    internships or projects.
+
+    Return ONLY valid JSON matching this schema:
+
+    {Resume_schema}
+
+    Important rules:
+
+    1. Do not invent information.
+    2. If a value is not available, return null.
+    3. If a list has no information, return an empty list.
+    4. Include internships inside experiences.
+    5. Extract skills mentioned across the entire resume.
+    """
+system_message_resume={
+    "role":"system",
+    "content":system_prompt_resume
+}
+#Resume Handling
+#For PDF type of files
+def read_pdf(file_path):
+    reader=PdfReader(file_path)
+    text=""
+    for page in reader.pages:
+        page_text=page.extract_text()
+        if page_text:
+            text=text+page_text+"\n"
+    return text
+
+#For Word Files
+def read_docx(file_path):
+    document=Document(file_path)
+    text=""
+    for paragraph in document.paragraphs:
+        if paragraph.text.strip():
+            text=text+paragraph.text+"\n"
+
+
+
+    for table in document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                if cell.text.strip():
+                    text=text+cell.text+"\n"
+    return text
+
+def read_resume(file_path):
+    if file_path.suffix.lower()==".pdf":
+        return read_pdf(file_path)
+    elif file_path.suffix.lower()==".docx":
+        return read_docx(file_path)
+    else:
+        return None
+
+
+resume_folder = Path("Resumes")
+
+for file_path in resume_folder.iterdir():
+
+    # Skip files that are not PDF or DOCX
+    if file_path.suffix.lower() not in [".pdf", ".docx"]:
+        continue
+
+    print(f"\nProcessing: {file_path.name}")
+
+    # Read resume
+    resume_text = read_resume(file_path)
+
+    # Create user prompt
+    user_prompt_resume = f"""
+    Parse the following resume:
+
+    {resume_text}
+    """
+
+    user_message_resume = {
+        "role": "user",
+        "content": user_prompt_resume
+    }
+
+    messages_resume = [
+        system_message_resume,
+        user_message_resume
+    ]
+
+    # Call Groq API
+    response_resume = client.chat.completions.create(
+        model=model,
+        messages=messages_resume,
+        temperature=0,
+        response_format=response_format
+    )
+
+    # Parse response
+    ans_res = response_resume.choices[0].message.content
+    data_file_res = json.loads(ans_res)
+    resume_op = Resume(**data_file_res)
+
+    # Print result
+    print(resume_op)
+    print("-" * 80)
