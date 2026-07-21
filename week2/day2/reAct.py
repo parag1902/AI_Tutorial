@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from groq import Groq
 import time
+import re
 
 load_dotenv()
 my_api_key=os.getenv("GROQ_API_KEY")
@@ -50,7 +51,7 @@ Action:calculator("100000-70000")
 
 #Constraints
 Never write:
-get_product_price(product="iPhone 17)
+get_product_price(product="iPhone 17")
 Never write:
 Action:calculator(exp="100000-70000")
 
@@ -103,9 +104,9 @@ def run_agent(question):
             break
 
         #Now Find the Action
-        match=re.search(
-            r"Action:\s*(\w)\((.*?)\)",
-            answer
+        match = re.search(
+           r'Action:\s*([a-zA-Z_]\w*)\((.*?)\)',
+           answer
         )
 
         if match:
@@ -137,7 +138,7 @@ def run_agent(question):
                     "Observation: "
                     + str(observation)
             })
-            sleep(5)
+            time.sleep(5)
 
 
 
