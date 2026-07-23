@@ -142,6 +142,7 @@ def run_agent(question):
 
 
 
+
 prompt="""
 I have 100000 rupees. What is the price of an iphone 17?
 and how much money will I have left?
