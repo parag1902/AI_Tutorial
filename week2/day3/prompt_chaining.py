@@ -111,5 +111,4 @@ time.sleep(2)
 jd=step2_res_extract(JD)
 time.sleep(2)
 score=step_3_match(candidate,jd)
-
 print(score)
