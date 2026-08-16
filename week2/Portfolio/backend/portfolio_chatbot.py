@@ -210,3 +210,6 @@ def answer_question(question: str):
     answer = response.choices[0].message.content
 
     return answer
+query="Eucational ?"
+temp=answer_question(query)
+print(temp)
