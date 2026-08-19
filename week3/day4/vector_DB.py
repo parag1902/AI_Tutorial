@@ -43,7 +43,7 @@ db_client.create_collection(
     collection_name=collection_name,
     vectors_config=VectorParams(
         size=embedding_size,
-        distance=Distance.Cosine,
+        distance=Distance.COSINE,
     ),
 )
 
@@ -144,7 +144,7 @@ If the answer is not present in the context, say:
 """
 
     response = llm_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model= "openai/gpt-oss-120b",
         messages=[
             {
                 "role": "user",
